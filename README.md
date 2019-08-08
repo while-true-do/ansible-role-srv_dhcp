@@ -49,7 +49,7 @@ Used Modules:
 -   [Ansible package_facts Module](https://docs.ansible.com/ansible/latest/modules/package_facts_module.html)
 -   [Ansible firewalld Module](https://docs.ansible.com/ansible/latest/modules/firewalld_module.html)
 -   [Ansible template Module](https://docs.ansible.com/ansible/latest/modules/template_module.html)
--   [Ansible file Module](linhttps://docs.ansible.com/ansible/latest/modules/file_module.html)
+-   [Ansible file Module](https://docs.ansible.com/ansible/latest/modules/file_module.html)
 
 ## Installation
 
