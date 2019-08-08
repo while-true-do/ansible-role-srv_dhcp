@@ -1,0 +1,107 @@
+{{ ansible_managed | comment }}
+
+# Global
+
+{% if wtd_srv_dhcp_conf_global.local_address is defined %}
+local_address: "{{ wtd_srv_dhcp_conf_global.local_address }}";
+{% endif %}
+{% if wtd_srv_dhcp_conf_global.authoritative | default('false') | bool %}
+authoritative;
+{% endif %}
+{% if wtd_srv_dhcp_conf_global.domain_name is defined %}
+option domain-name "{{ wtd_srv_dhcp_conf_global.domain_name }}";
+{% endif %}
+{% if wtd_srv_dhcp_conf_global.domain_name_servers is defined %}
+option domain-name-servers "{{ wtd_srv_dhcp_conf_global.domain_name_servers }}";
+{% endif %}
+default-lease-time {{ wtd_srv_dhcp_conf_global.default_lease_time | default('600') }};
+max-lease-time {{ wtd_srv_dhcp_conf_global.max_lease_time | default('7200') }};
+{% if wtd_srv_dhcp_conf_global.allow_booting | default('false') | bool %}
+allow booting;
+{% endif %}
+{% if wtd_srv_dhcp_conf_global.allow_bootp | default('false') | bool %}
+allow bootp;
+{% endif %}
+{% if wtd_srv_dhcp_conf_global.next_server is defined %}
+next-server "{{ wtd_srv_dhcp_conf_global.next_server }}";
+{% endif %}
+{% if wtd_srv_dhcp_conf_global.filename is defined %}
+filename "{{ wtd_srv_dhcp_conf_global.filename }}";
+{% endif %}
+{% if wtd_srv_dhcp_conf_global.log_facility is defined %}
+log_facility "{{ wtd_srv_dhcp_conf_global.log_facility }}";
+{% endif %}
+{% if wtd_srv_dhcp_conf_global.options is defined %}
+{% for option in wtd_srv_dhcp_conf_global.options %}
+{{ option }};
+{% endfor %}
+{% endif %}
+
+# Networks
+
+{% for network in wtd_srv_dhcp_conf_networks %}
+{% if network.name is defined %}
+# {{ network.name }}
+{% endif %}
+subnet {{ network.subnet }} netmask {{ network.netmask }} {
+  {% if network.routers is defined %}
+  option routers {{ network.routers }};
+  {% endif %}
+  {% if network.broadcast_address is defined %}
+  option broadcast-address {{ network.broadcast_address }};
+  {% endif %}
+  {% if network.domain_name is defined %}
+  option domain-name "{{ network.domain_name }}";
+  {% endif %}
+  {% if network.domain_name_servers is defined %}
+  option domain-name-servers "{{ network.domain_name_servers }}";
+  {% endif %}
+  {% if network.max_lease_time is defined %}
+  max-lease-time {{ network.max_lease_time }};
+  {% endif %}
+  {% if network.options is defined %}
+  {% for option in network.options %}
+  {{ option }};
+  {% endfor %}
+  {% endif %}
+  {% if network.pools is defined %}
+  {% for pool in network.pools %}
+
+  {% if pool.name is defined %}
+  # {{ pool.name }}
+  {% endif %}
+  pool {
+    range {{ pool.range }};
+    {% if pool.domain_name is defined %}
+    option domain-name "{{ pool.domain_name }}";
+    {% endif %}
+    {% if pool.domain_name_servers is defined %}
+    option domain-name-servers "{{ pool.domain_name_servers }}";
+    {% endif %}
+    {% if pool.max_lease_time is defined %}
+    max-lease-time {{ pool.max_lease_time }};
+    {% endif %}
+    {% if pool.unknown_clients is defined %}
+    {{ pool.unknown_clients }} unknown-clients;
+    {% endif %}
+    {% if pool.options is defined %}
+    {% for option in pool.options %}
+    {{ option }};
+    {% endfor %}
+    {% endif %}
+  }
+  {% endfor %}
+  {% endif %}
+}
+{% endfor %}
+
+# Inlude configurations
+{% if wtd_srv_dhcp_conf_failover.enabled | bool %}
+include "/etc/dhcp/dhcpd-failover.conf";
+{% endif %}
+{% if wtd_srv_dhcp_conf_omapi.enabled | bool %}
+include "/etc/dhcp/dhcpd-omapi.conf";
+{% endif %}
+{% for include in wtd_srv_dhcp_conf_includes %}
+include "{{ include }}";
+{% endfor %}

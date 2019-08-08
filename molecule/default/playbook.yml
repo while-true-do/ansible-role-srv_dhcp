@@ -1,0 +1,23 @@
+---
+- name: Converge
+  hosts: all
+  roles:
+    - role: while_true_do.srv_dhcp
+      wtd_srv_dhcp_conf_global:
+        authoritative: true
+        domain_name: "test.docker"
+      wtd_srv_dhcp_conf_networks:
+        - name: "docker network"
+          subnet: "172.17.0.0"
+          netmask: "255.255.0.0"
+          max_lease_time: 3600
+          pools:
+            - name: "docker pool 1"
+              range: "172.17.0.10 172.17.0.20"
+              unknown_clients: "allow"
+            - name: "docker pool 2"
+              range: "172.17.0.30 172.17.0.40"
+              unknown_clients: "deny"
+      wtd_srv_dhcp_conf_omapi:
+        enabled: true
+        secret: "Tq5Sf63Tu5zRqIVrVqZ7GA=="

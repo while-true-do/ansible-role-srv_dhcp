@@ -1,0 +1,12 @@
+---
+# handlers file for while_true_do.srv_dhcp
+
+- name: Restart dhcpd
+  service:
+    name: "{{ wtd_srv_dhcp_service }}"
+    state: "restarted"
+  become: true
+  tags:
+    - dhcp
+    - configuration
+    - service

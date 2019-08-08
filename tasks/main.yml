@@ -1,0 +1,127 @@
+---
+# tasks file for while_true_do.srv_dhcp
+
+- name: Manage dhcp Packages
+  package:
+    name: "{{ wtd_srv_dhcp_package }}"
+    state: "{{ wtd_srv_dhcp_package_state }}"
+  become: true
+  tags:
+    - dhcp
+    - package
+
+- name: Manage dhcp Configuration
+  template:
+    src: "dhcpd.conf.j2"
+    dest: "/etc/dhcp/dhcpd.conf"
+    lstrip_blocks: true
+  become: true
+  notify:
+    - Restart dhcpd
+  when:
+    - wtd_srv_dhcp_package_state != "absent"
+  tags:
+    - dhcp
+    - configuration
+
+- name: Manage dhcp failover Configuration
+  template:
+    src: "dhcpd-failover.conf.j2"
+    dest: "/etc/dhcp/dhcpd-failover.conf"
+    lstrip_blocks: true
+  become: true
+  notify:
+    - Restart dhcpd
+  when:
+    - wtd_srv_dhcp_package_state != "absent"
+    - wtd_srv_dhcp_conf_failover.enabled | bool
+  tags:
+    - dhcp
+    - configuration
+    - failover
+
+- name: Manage dhcp omapi Configuration
+  template:
+    src: "dhcpd-omapi.conf.j2"
+    dest: "/etc/dhcp/dhcpd-omapi.conf"
+    lstrip_blocks: true
+  become: true
+  notify:
+    - Restart dhcpd
+  when:
+    - wtd_srv_dhcp_package_state != "absent"
+    - wtd_srv_dhcp_conf_omapi.enabled | bool
+  tags:
+    - dhcp
+    - configuration
+    - omapi
+
+- name: Manage dhcp Service
+  service:
+    name: "{{ wtd_srv_dhcp_service }}"
+    state: "{{ wtd_srv_dhcp_service_state }}"
+    enabled: "{{ wtd_srv_dhcp_service_enabled }}"
+  become: true
+  when:
+    - wtd_srv_dhcp_package_state != "absent"
+  tags:
+    - dhcp
+    - service
+
+- name: Gather package facts
+  package_facts:
+    manager: "auto"
+  tags:
+    - dhcp
+    - facts
+    - firewall
+    - package
+    - security
+    - server
+
+- name: Manage dhcp FW Service
+  firewalld:
+    service: "{{ wtd_srv_dhcp_fw_service }}"
+    state: "{{ wtd_srv_dhcp_fw_state }}"
+    zone: "{{ wtd_srv_dhcp_fw_zone }}"
+  become: true
+  when:
+    - '"firewalld" in ansible_facts.packages'
+    - wtd_srv_dhcp_fw_mgmt | bool
+  tags:
+    - dhcp
+    - security
+    - firewall
+
+- name: Manage dhcp failover FW Port
+  firewalld:
+    port: "{{ item }}"
+    state: "{{ wtd_srv_dhcp_fw_state }}"
+    zone: "{{ wtd_srv_dhcp_fw_zone }}"
+  become: true
+  loop:
+    - "{{ wtd_srv_dhcp_fw_failover.port | default('647') }}/tcp"
+    - "{{ wtd_srv_dhcp_fw_failover.port | default('647') }}/udp"
+  when:
+    - '"firewalld" in ansible_facts.packages'
+    - wtd_srv_dhcp_fw_mgmt | bool
+    - wtd_srv_dhcp_conf_failover.enabled | bool
+  tags:
+    - dhcp
+    - security
+    - firewall
+
+- name: Manage dhcp omapi FW Port
+  firewalld:
+    port: "{{ wtd_srv_dhcp_fw_omapi.port | default('7911') }}/tcp"
+    state: "{{ wtd_srv_dhcp_fw_state }}"
+    zone: "{{ wtd_srv_dhcp_fw_zone }}"
+  become: true
+  when:
+    - '"firewalld" in ansible_facts.packages'
+    - wtd_srv_dhcp_fw_mgmt | bool
+    - wtd_srv_dhcp_conf_omapi.enabled | bool
+  tags:
+    - dhcp
+    - security
+    - firewall
