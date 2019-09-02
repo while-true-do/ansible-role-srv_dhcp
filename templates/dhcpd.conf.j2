@@ -78,7 +78,7 @@ subnet {{ network.subnet }} netmask {{ network.netmask }} {
   {% endif %}
   pool {
     {% if wtd_srv_dhcp_conf_failover.enabled | bool %}
-    failover peer {{ pool.failover_peer | default('dhcp-cluster') }};
+    failover peer "{{ pool.failover_peer | default('dhcp-cluster') }}";
     {% endif %}
     range {{ pool.range }};
     {% if pool.domain_name is defined %}
