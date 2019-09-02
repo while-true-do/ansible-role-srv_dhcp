@@ -3,6 +3,8 @@
 failover peer "{{ wtd_srv_dhcp_conf_failover.name | default('dhcp-cluster') }}" {
   {% if wtd_srv_dhcp_conf_failover.primary | bool %}
   primary;
+  {% else %}
+  secondary;
   {% endif %}
   address {{ wtd_srv_dhcp_conf_failover.address }};
   port {{ wtd_srv_dhcp_conf_failover.port | default('647') }};
