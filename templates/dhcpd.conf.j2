@@ -37,6 +37,12 @@ log_facility "{{ wtd_srv_dhcp_conf_global.log_facility }}";
 {% endfor %}
 {% endif %}
 
+# Failover
+
+{% if wtd_srv_dhcp_conf_failover.enabled | bool %}
+include "/etc/dhcp/dhcpd-failover.conf";
+{% endif %}
+
 # Networks
 
 {% for network in wtd_srv_dhcp_conf_networks %}
@@ -71,6 +77,9 @@ subnet {{ network.subnet }} netmask {{ network.netmask }} {
   # {{ pool.name }}
   {% endif %}
   pool {
+    {% if wtd_srv_dhcp_conf_failover.enabled | bool %}
+    failover peer {{ pool.failover_peer | default('dhcp-cluster') }};
+    {% endif %}
     range {{ pool.range }};
     {% if pool.domain_name is defined %}
     option domain-name "{{ pool.domain_name }}";
@@ -96,9 +105,6 @@ subnet {{ network.subnet }} netmask {{ network.netmask }} {
 {% endfor %}
 
 # Inlude configurations
-{% if wtd_srv_dhcp_conf_failover.enabled | bool %}
-include "/etc/dhcp/dhcpd-failover.conf";
-{% endif %}
 {% if wtd_srv_dhcp_conf_omapi.enabled | bool %}
 include "/etc/dhcp/dhcpd-omapi.conf";
 {% endif %}

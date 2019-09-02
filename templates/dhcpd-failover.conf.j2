@@ -6,13 +6,13 @@ failover peer "{{ wtd_srv_dhcp_conf_failover.name | default('dhcp-cluster') }}" 
   {% endif %}
   address {{ wtd_srv_dhcp_conf_failover.address }};
   port {{ wtd_srv_dhcp_conf_failover.port | default('647') }};
-  peer address {{ wtd_srv_dhcp_conf_failover.peer_address }}
+  peer address {{ wtd_srv_dhcp_conf_failover.peer_address }};
   peer port {{ wtd_srv_dhcp_conf_failover.peer_port | default('647') }};
   max-response-delay {{ wtd_srv_dhcp_conf_failover.max_response_delay | default ('60') }};
   max-unacked-updates {{ wtd_srv_dhcp_conf_failover.max_unacked_updates | default('10') }};
   load balance max seconds {{ wtd_srv_dhcp_conf_failover.load_balance_max_seconds | default('3') }};
   {% if wtd_srv_dhcp_conf_failover.primary | bool %}
-  mclt {{ wtd_srv_dhcp_conf_failover.mclt | default('1800') }}
-  split {{ wtd_srv_dhcp_conf_failover.split | default('128') }}
+  mclt {{ wtd_srv_dhcp_conf_failover.mclt | default('1800') }};
+  split {{ wtd_srv_dhcp_conf_failover.split | default('128') }};
   {% endif %}
 }

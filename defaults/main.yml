@@ -38,6 +38,7 @@ wtd_srv_dhcp_conf_networks: []
 #   options: []
 #   pools:
 #     - name: ""
+#       failover_peer: ""
 #       range: ""
 #       domain_name: ""
 #       domain_name_servers: ""
