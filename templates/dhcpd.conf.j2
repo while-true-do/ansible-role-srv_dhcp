@@ -23,7 +23,7 @@ allow booting;
 allow bootp;
 {% endif %}
 {% if wtd_srv_dhcp_conf_global.next_server is defined %}
-next-server "{{ wtd_srv_dhcp_conf_global.next_server }}";
+next-server {{ wtd_srv_dhcp_conf_global.next_server }};
 {% endif %}
 {% if wtd_srv_dhcp_conf_global.filename is defined %}
 filename "{{ wtd_srv_dhcp_conf_global.filename }}";
