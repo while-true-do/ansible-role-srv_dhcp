@@ -1,6 +1,6 @@
 {{ ansible_managed | comment }}
 
-failover peer "{{ wtd_srv_dhcp_conf_failover.name | default('dhcp-cluster') }}" {
+failover peer {{ wtd_srv_dhcp_conf_failover.name | default('dhcp-cluster') }} {
   {% if wtd_srv_dhcp_conf_failover.primary | bool %}
   primary;
   {% else %}
@@ -15,6 +15,6 @@ failover peer "{{ wtd_srv_dhcp_conf_failover.name | default('dhcp-cluster') }}" 
   load balance max seconds {{ wtd_srv_dhcp_conf_failover.load_balance_max_seconds | default('3') }};
   {% if wtd_srv_dhcp_conf_failover.primary | bool %}
   mclt {{ wtd_srv_dhcp_conf_failover.mclt | default('1800') }};
-  split {{ wtd_srv_dhcp_conf_failover.split | default('128') }};
+  split {{ wtd_srv_dhcp_conf_failover.split | default('255') }};
   {% endif %}
 }

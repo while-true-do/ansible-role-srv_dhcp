@@ -98,6 +98,8 @@
     port: "{{ item }}"
     state: "{{ wtd_srv_dhcp_fw_state }}"
     zone: "{{ wtd_srv_dhcp_fw_zone }}"
+    immediate: true
+    permanent: true
   become: true
   loop:
     - "{{ wtd_srv_dhcp_fw_failover.port | default('647') }}/tcp"
@@ -116,6 +118,8 @@
     port: "{{ wtd_srv_dhcp_fw_omapi.port | default('7911') }}/tcp"
     state: "{{ wtd_srv_dhcp_fw_state }}"
     zone: "{{ wtd_srv_dhcp_fw_zone }}"
+    immediate: true
+    permanent: true
   become: true
   when:
     - '"firewalld" in ansible_facts.packages'
