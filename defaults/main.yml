@@ -16,6 +16,7 @@ wtd_srv_dhcp_conf_global: []
 # authoritative: false
 # domain_name: ""
 # domain_name_servers: ""
+# ntp_servers: ""
 # default_lease_time: 600
 # max_lease_time: 7200
 # allow_booting: false
@@ -36,15 +37,25 @@ wtd_srv_dhcp_conf_networks: []
 #   domain_name_servers: ""
 #   max_lease_time: ""
 #   options: []
+#   range: ""
 #   pools:
+#   - name: ""
+#     failover_peer: ""
+#     range: ""
+#     domain_name: ""
+#     domain_name_servers: ""
+#     max_lease_time: ""
+#     unknown_clients: ""
+#     options: []
+
+# Configure Groups
+wtd_srv_dhcp_conf_groups: []
+#   - name: ""
+#     use_host_decl_names: "on"
+#     hosts:
 #     - name: ""
-#       failover_peer: ""
-#       range: ""
-#       domain_name: ""
-#       domain_name_servers: ""
-#       max_lease_time: ""
-#       unknown_clients: ""
-#       options: []
+#       hardware_ethernet: ""
+#       fixed_address: ""
 
 # Configure failover (/etc/dhcp/dhcpd-failover.conf)
 wtd_srv_dhcp_conf_failover:
@@ -59,7 +70,7 @@ wtd_srv_dhcp_conf_failover:
 # max_unacked_updates: "10"
 # load_balance_max_seconds: 3
 # mclt: 1800
-# split: 128
+# split: 255
 
 # Configure the omapi (/etc/dhcp/dhcpd-omapi.conf)
 # You have to generate the secret via:

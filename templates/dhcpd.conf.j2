@@ -3,16 +3,10 @@
 # Global
 
 {% if wtd_srv_dhcp_conf_global.local_address is defined %}
-local_address: "{{ wtd_srv_dhcp_conf_global.local_address }}";
+local_address: {{ wtd_srv_dhcp_conf_global.local_address }};
 {% endif %}
 {% if wtd_srv_dhcp_conf_global.authoritative | default('false') | bool %}
 authoritative;
-{% endif %}
-{% if wtd_srv_dhcp_conf_global.domain_name is defined %}
-option domain-name "{{ wtd_srv_dhcp_conf_global.domain_name }}";
-{% endif %}
-{% if wtd_srv_dhcp_conf_global.domain_name_servers is defined %}
-option domain-name-servers "{{ wtd_srv_dhcp_conf_global.domain_name_servers }}";
 {% endif %}
 default-lease-time {{ wtd_srv_dhcp_conf_global.default_lease_time | default('600') }};
 max-lease-time {{ wtd_srv_dhcp_conf_global.max_lease_time | default('7200') }};
@@ -29,7 +23,17 @@ next-server {{ wtd_srv_dhcp_conf_global.next_server }};
 filename "{{ wtd_srv_dhcp_conf_global.filename }}";
 {% endif %}
 {% if wtd_srv_dhcp_conf_global.log_facility is defined %}
-log_facility "{{ wtd_srv_dhcp_conf_global.log_facility }}";
+log_facility {{ wtd_srv_dhcp_conf_global.log_facility }};
+{% endif %}
+## Options
+{% if wtd_srv_dhcp_conf_global.domain_name is defined %}
+option domain-name "{{ wtd_srv_dhcp_conf_global.domain_name }}";
+{% endif %}
+{% if wtd_srv_dhcp_conf_global.domain_name_servers is defined %}
+option domain-name-servers {{ wtd_srv_dhcp_conf_global.domain_name_servers }};
+{% endif %}
+{% if wtd_srv_dhcp_conf_global.ntp_servers is defined %}
+option ntp-servers {{ wtd_srv_dhcp_conf_global.ntp_servers }};
 {% endif %}
 {% if wtd_srv_dhcp_conf_global.options is defined %}
 {% for option in wtd_srv_dhcp_conf_global.options %}
@@ -50,6 +54,14 @@ include "/etc/dhcp/dhcpd-failover.conf";
 # {{ network.name }}
 {% endif %}
 subnet {{ network.subnet }} netmask {{ network.netmask }} {
+  {% if network.max_lease_time is defined %}
+  max-lease-time {{ network.max_lease_time }};
+  {% endif %}
+  {% if network.range is defined %}
+  range {{ network.range }};
+  {% endif %}
+
+  ## Options
   {% if network.routers is defined %}
   option routers {{ network.routers }};
   {% endif %}
@@ -60,10 +72,7 @@ subnet {{ network.subnet }} netmask {{ network.netmask }} {
   option domain-name "{{ network.domain_name }}";
   {% endif %}
   {% if network.domain_name_servers is defined %}
-  option domain-name-servers "{{ network.domain_name_servers }}";
-  {% endif %}
-  {% if network.max_lease_time is defined %}
-  max-lease-time {{ network.max_lease_time }};
+  option domain-name-servers {{ network.domain_name_servers }};
   {% endif %}
   {% if network.options is defined %}
   {% for option in network.options %}
@@ -81,17 +90,19 @@ subnet {{ network.subnet }} netmask {{ network.netmask }} {
     failover peer "{{ pool.failover_peer | default('dhcp-cluster') }}";
     {% endif %}
     range {{ pool.range }};
-    {% if pool.domain_name is defined %}
-    option domain-name "{{ pool.domain_name }}";
-    {% endif %}
-    {% if pool.domain_name_servers is defined %}
-    option domain-name-servers "{{ pool.domain_name_servers }}";
-    {% endif %}
     {% if pool.max_lease_time is defined %}
     max-lease-time {{ pool.max_lease_time }};
     {% endif %}
     {% if pool.unknown_clients is defined %}
     {{ pool.unknown_clients }} unknown-clients;
+    {% endif %}
+
+    ## Options
+    {% if pool.domain_name is defined %}
+    option domain-name "{{ pool.domain_name }}";
+    {% endif %}
+    {% if pool.domain_name_servers is defined %}
+    option domain-name-servers {{ pool.domain_name_servers }};
     {% endif %}
     {% if pool.options is defined %}
     {% for option in pool.options %}
@@ -104,7 +115,31 @@ subnet {{ network.subnet }} netmask {{ network.netmask }} {
 }
 {% endfor %}
 
+# Groups
+
+{% if wtd_srv_dhcp_conf_groups.groups is defined %}
+{% for group in wtd_srv_dhcp_conf_groups %}
+
+{% if group.name is defined %}
+# {{ group.name }}
+{% endif %}
+group {
+  use-host-decl-names {{ group.use_host_decl_names | default('on') }};
+
+  {% if group.hosts is defined %}
+  {% for host in group.hosts %}
+  host {{ host.name }} {
+    hardware ethernet {{ hardware_ethernet }};
+    fixed-address {{ fixed_address }};
+  }
+  {% endfor %}
+  {% endif %}
+}
+{% endfor %}
+{% endif %}
+
 # Inlude configurations
+
 {% if wtd_srv_dhcp_conf_omapi.enabled | bool %}
 include "/etc/dhcp/dhcpd-omapi.conf";
 {% endif %}

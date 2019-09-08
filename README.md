@@ -86,6 +86,7 @@ wtd_srv_dhcp_conf_global: []
 # authoritative: false
 # domain_name: ""
 # domain_name_servers: ""
+# ntp_servers: ""
 # default_lease_time: 600
 # max_lease_time: 7200
 # allow_booting: false
@@ -106,14 +107,25 @@ wtd_srv_dhcp_conf_networks: []
 #   domain_name_servers: ""
 #   max_lease_time: ""
 #   options: []
+#   range: ""
 #   pools:
+#   - name: ""
+#     failover_peer: ""
+#     range: ""
+#     domain_name: ""
+#     domain_name_servers: ""
+#     max_lease_time: ""
+#     unknown_clients: ""
+#     options: []
+
+# Configure Groups
+wtd_srv_dhcp_conf_groups: []
+#   - name: ""
+#     use_host_decl_names: "on"
+#     hosts:
 #     - name: ""
-#       range: ""
-#       domain_name: ""
-#       domain_name_servers: ""
-#       max_lease_time: ""
-#       unknown_clients: ""
-#       options: []
+#       hardware_ethernet: ""
+#       fixed_address: ""
 
 # Configure failover (/etc/dhcp/dhcpd-failover.conf)
 wtd_srv_dhcp_conf_failover:
@@ -128,7 +140,7 @@ wtd_srv_dhcp_conf_failover:
 # max_unacked_updates: "10"
 # load_balance_max_seconds: 3
 # mclt: 1800
-# split: 128
+# split: 255
 
 # Configure the omapi (/etc/dhcp/dhcpd-omapi.conf)
 # You have to generate the secret via:
@@ -180,8 +192,9 @@ A dhcp server for 192.168.0.0/24 can look like.
         - name: "my network"
           subnet: "192.168.0.0"
           netmask: "255.255.255.0"
-          pools:
-            - range: "192.168.0.10 192.168.0.20"
+          domain_name_servers: "192.168.0.1"
+          routers: "192.168.0.1"
+          range: "192.168.0.10 192.168.0.20"
 ```
 
 #### Advanced
@@ -199,6 +212,8 @@ Define multiple pools and networks or change some global values.
         - name: "my network 1"
           subnet: "192.168.0.0"
           netmask: "255.255.255.0"
+          domain_name_servers: "192.168.0.1"
+          routers: "192.168.0.1"
           pools:
             - name: "my network 1 pool"
               range: "192.168.0.10 192.168.0.20"
@@ -207,9 +222,9 @@ Define multiple pools and networks or change some global values.
         - name: "my network 2"
           subnet: "192.168.10.0"
           netmask: "255.255.255.0"
-          pools:
-            - name: "my ntwork 2 pool"
-              range: "192.168.10.10 192.168.10.20"
+          domain_name_servers: "192.168.10.1"
+          routers: "192.168.10.1"
+          range: "192.168.10.10 192.168.10.20"
 ```
 
 Configure a dhcp cluster, enable the omapi and configure
@@ -235,8 +250,9 @@ cat *.key
         - name: "my network"
           subnet: "192.168.0.0"
           netmask: "255.255.255.0"
-          pools:
-            - range: "192.168.0.100 192.168.0.200"
+          domain_name_servers: "192.168.0.1"
+          routers: "192.168.0.1"
+          range: "192.168.0.100 192.168.0.200"
       wtd_srv_dhcp_conf_omapi:
         enabled: true
         secret: "my_secret!!!"
@@ -254,8 +270,9 @@ cat *.key
         - name: "my network"
           subnet: "192.168.0.0"
           netmask: "255.255.255.0"
-          pools:
-            - range: "192.168.0.100 192.168.0.200"
+          domain_name_servers: "192.168.0.1"
+          routers: "192.168.0.1"
+          range: "192.168.0.100 192.168.0.200"
       wtd_srv_dhcp_conf_omapi:
         enabled: true
         secret: "my_secret!!!"
