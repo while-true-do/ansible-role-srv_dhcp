@@ -19,11 +19,11 @@
               range: "172.17.0.30 172.17.0.40"
               unknown_clients: "deny"
       wtd_srv_dhcp_conf_groups:
-      - name: "test"
-        hosts:
-          - name: "test01"
-            hardware_ethernet: "00:50:50:aa:50:aa"
-            fixed_address: "172.17.0.35"
+        - name: "test"
+          hosts:
+            - name: "test01"
+              hardware_ethernet: "00:50:50:aa:50:aa"
+              fixed_address: "172.17.0.35"
       wtd_srv_dhcp_conf_omapi:
         enabled: true
         secret: "Tq5Sf63Tu5zRqIVrVqZ7GA=="
