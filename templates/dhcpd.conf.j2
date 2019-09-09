@@ -117,7 +117,7 @@ subnet {{ network.subnet }} netmask {{ network.netmask }} {
 
 # Groups
 
-{% if wtd_srv_dhcp_conf_groups.groups is defined %}
+{% if wtd_srv_dhcp_conf_groups is defined %}
 {% for group in wtd_srv_dhcp_conf_groups %}
 
 {% if group.name is defined %}
