@@ -7,23 +7,23 @@
         authoritative: true
         domain_name: "test.docker"
       wtd_srv_dhcp_conf_networks:
-      - name: "docker network"
-        subnet: "172.17.0.0"
-        netmask: "255.255.0.0"
-        max_lease_time: 3600
-        pools:
-        - name: "docker pool 1"
-          range: "172.17.0.10 172.17.0.20"
-          unknown_clients: "allow"
-        - name: "docker pool 2"
-          range: "172.17.0.30 172.17.0.40"
-          unknown_clients: "deny"
+        - name: "docker network"
+          subnet: "172.17.0.0"
+          netmask: "255.255.0.0"
+          max_lease_time: 3600
+          pools:
+            - name: "docker pool 1"
+              range: "172.17.0.10 172.17.0.20"
+              unknown_clients: "allow"
+            - name: "docker pool 2"
+              range: "172.17.0.30 172.17.0.40"
+              unknown_clients: "deny"
       wtd_srv_dhcp_conf_groups:
       - name: "test"
         hosts:
-        - name: "test01"
-          hardware_ethernet: "00:50:50:aa:50:aa"
-          fixed_address: "172.17.0.35"
+          - name: "test01"
+            hardware_ethernet: "00:50:50:aa:50:aa"
+            fixed_address: "172.17.0.35"
       wtd_srv_dhcp_conf_omapi:
         enabled: true
         secret: "Tq5Sf63Tu5zRqIVrVqZ7GA=="
