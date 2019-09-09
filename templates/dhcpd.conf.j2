@@ -129,8 +129,8 @@ group {
   {% if group.hosts is defined %}
   {% for host in group.hosts %}
   host {{ host.name }} {
-    hardware ethernet {{ hardware_ethernet }};
-    fixed-address {{ fixed_address }};
+    hardware ethernet {{ host.hardware_ethernet }};
+    fixed-address {{ host.fixed_address }};
   }
   {% endfor %}
   {% endif %}
