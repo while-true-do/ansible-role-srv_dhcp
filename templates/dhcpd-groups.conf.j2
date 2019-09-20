@@ -1,0 +1,28 @@
+{{ ansible_managed | comment }}
+
+# Groups
+
+{% if wtd_srv_dhcp_conf_groups is defined %}
+{% for group in wtd_srv_dhcp_conf_groups %}
+{% if group.name is defined %}
+# {{ group.name }}
+{% endif %}
+group {
+  use-host-decl-names {{ group.use_host_decl_names | default('on') }};
+  ddns-updates {{ group.ddns_updates | default('on') }};
+
+{% if group.hosts is defined %}
+{% for host in group.hosts %}
+  host {{ host.name }} {
+    hardware ethernet {{ host.hardware_ethernet }};
+    fixed-address {{ host.fixed_address }};
+{% if wtd_srv_dhcp_conf_ddns.enabled | bool %}
+    ddns-hostname "{{ host.name }}";
+{% endif %}
+  }
+{% endfor %}
+{% endif %}
+}
+
+{% endfor %}
+{% endif %}

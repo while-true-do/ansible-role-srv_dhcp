@@ -1,0 +1,19 @@
+{{ ansible_managed | comment }}
+
+# DDNS
+
+ddns-updates {{ wtd_srv_dhcp_conf_ddns.ddns_updates | default('on') }};
+ddns-update-style {{ wtd_srv_dhcp_conf_ddns.ddns_update_style | default('interim') }};
+ddns-ttl {{ wtd_srv_dhcp_conf_ddns.ddns_ttl | default('7200') }};
+ignore {{ wtd_srv_dhcp_conf_ddns.ignore | default('client-updates') }};
+update-static-leases {{ wtd_srv_dhcp_conf_ddns.update_static_leases | default('on') }};
+
+{% if wtd_srv_dhcp_conf_ddns.zones is defined %}
+{% for zone in wtd_srv_dhcp_conf_ddns.zones %}
+zone {{ zone.name | mandatory }} {
+  primary {{ zone.primary | mandatory }};
+  key {{ zone.key | mandatory }};
+}
+
+{% endfor %}
+{% endif %}

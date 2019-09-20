@@ -1,0 +1,13 @@
+{{ ansible_managed | comment }}
+
+# Keys
+
+{% if wtd_srv_dhcp_conf_keys is defined %}
+{% for key in wtd_srv_dhcp_conf_keys %}
+key {{ key.name | mandatory }} {
+  algorithm {{ key.algorithm | default('hmac-md5') }};
+  secret "{{ key.secret | mandatory }}";
+}
+
+{% endfor %}
+{% endif %}

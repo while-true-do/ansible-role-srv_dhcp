@@ -24,6 +24,16 @@
             - name: "test01"
               hardware_ethernet: "00:50:50:aa:50:aa"
               fixed_address: "172.17.0.35"
+      wtd_srv_dhcp_conf_keys:
+        - name: "test_key"
+          secret: "Tq5Sf63Tu5zRqIVrVqZ7GA=="
+      wtd_srv_dhcp_conf_ddns:
+        enabled: true
+        zones:
+          - name: "test.docker"
+            primary: "127.0.0.1"
+            key: "test_key"
       wtd_srv_dhcp_conf_omapi:
         enabled: true
-        secret: "Tq5Sf63Tu5zRqIVrVqZ7GA=="
+        key: "test_key"
+      wtd_srv_dhcp_fw_mgmt: false

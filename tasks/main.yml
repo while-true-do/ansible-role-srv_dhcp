@@ -15,6 +15,9 @@
     src: "dhcpd.conf.j2"
     dest: "/etc/dhcp/dhcpd.conf"
     lstrip_blocks: true
+    owner: "root"
+    group: "root"
+    mode: 0644
   become: true
   notify:
     - Restart dhcpd
@@ -29,6 +32,9 @@
     src: "dhcpd-failover.conf.j2"
     dest: "/etc/dhcp/dhcpd-failover.conf"
     lstrip_blocks: true
+    owner: "root"
+    group: "root"
+    mode: 0644
   become: true
   notify:
     - Restart dhcpd
@@ -40,11 +46,86 @@
     - configuration
     - failover
 
+- name: Manage dhcp keys Configuration
+  template:
+    src: "dhcpd-keys.conf.j2"
+    dest: "/etc/dhcp/dhcpd-keys.conf"
+    lstrip_blocks: true
+    owner: "root"
+    group: "root"
+    mode: 0644
+  become: true
+  notify:
+    - Restart dhcpd
+  when:
+    - wtd_srv_dhcp_package_state != "absent"
+  tags:
+    - dhcp
+    - configuration
+    - dns
+    - omapi
+
+- name: Manage dhcp networks Configuration
+  template:
+    src: "dhcpd-networks.conf.j2"
+    dest: "/etc/dhcp/dhcpd-networks.conf"
+    lstrip_blocks: true
+    owner: "root"
+    group: "root"
+    mode: 0644
+  become: true
+  notify:
+    - Restart dhcpd
+  when:
+    - wtd_srv_dhcp_package_state != "absent"
+  tags:
+    - dhcp
+    - configuration
+
+- name: Manage dhcp groups Configuration
+  template:
+    src: "dhcpd-groups.conf.j2"
+    dest: "/etc/dhcp/dhcpd-groups.conf"
+    lstrip_blocks: true
+    owner: "root"
+    group: "root"
+    mode: 0644
+  become: true
+  notify:
+    - Restart dhcpd
+  when:
+    - wtd_srv_dhcp_package_state != "absent"
+  tags:
+    - dhcp
+    - configuration
+
+- name: Manage dhcp ddns Configuration
+  template:
+    src: "dhcpd-ddns.conf.j2"
+    dest: "/etc/dhcp/dhcpd-ddns.conf"
+    lstrip_blocks: true
+    owner: "root"
+    group: "root"
+    mode: 0644
+  become: true
+  notify:
+    - Restart dhcpd
+  when:
+    - wtd_srv_dhcp_package_state != "absent"
+    - wtd_srv_dhcp_conf_omapi.enabled | bool
+  tags:
+    - dhcp
+    - configuration
+    - dns
+
 - name: Manage dhcp omapi Configuration
   template:
     src: "dhcpd-omapi.conf.j2"
     dest: "/etc/dhcp/dhcpd-omapi.conf"
     lstrip_blocks: true
+    owner: "root"
+    group: "root"
+    mode: 0644
   become: true
   notify:
     - Restart dhcpd
@@ -68,25 +149,15 @@
     - dhcp
     - service
 
-- name: Gather package facts
-  package_facts:
-    manager: "auto"
-  tags:
-    - dhcp
-    - facts
-    - firewall
-    - package
-    - security
-    - server
-
 - name: Manage dhcp FW Service
   firewalld:
     service: "{{ wtd_srv_dhcp_fw_service }}"
     state: "{{ wtd_srv_dhcp_fw_state }}"
     zone: "{{ wtd_srv_dhcp_fw_zone }}"
+    immediate: true
+    permanent: true
   become: true
   when:
-    - '"firewalld" in ansible_facts.packages'
     - wtd_srv_dhcp_fw_mgmt | bool
   tags:
     - dhcp
@@ -105,7 +176,6 @@
     - "{{ wtd_srv_dhcp_fw_failover.port | default('647') }}/tcp"
     - "{{ wtd_srv_dhcp_fw_failover.port | default('647') }}/udp"
   when:
-    - '"firewalld" in ansible_facts.packages'
     - wtd_srv_dhcp_fw_mgmt | bool
     - wtd_srv_dhcp_conf_failover.enabled | bool
   tags:
@@ -122,7 +192,6 @@
     permanent: true
   become: true
   when:
-    - '"firewalld" in ansible_facts.packages'
     - wtd_srv_dhcp_fw_mgmt | bool
     - wtd_srv_dhcp_conf_omapi.enabled | bool
   tags:
