@@ -1,0 +1,72 @@
+{{ ansible_managed | comment }}
+
+# Networks
+
+{% if wtd_srv_dhcp_conf_networks is defined %}
+{% for network in wtd_srv_dhcp_conf_networks %}
+{% if network.name is defined %}
+# {{ network.name }}
+{% endif %}
+subnet {{ network.subnet }} netmask {{ network.netmask }} {
+  {% if network.max_lease_time is defined %}
+  max-lease-time {{ network.max_lease_time }};
+  {% endif %}
+  {% if network.range is defined %}
+  range {{ network.range }};
+  {% endif %}
+
+  # Options
+  {% if network.routers is defined %}
+  option routers {{ network.routers }};
+  {% endif %}
+  {% if network.broadcast_address is defined %}
+  option broadcast-address {{ network.broadcast_address }};
+  {% endif %}
+  {% if network.domain_name is defined %}
+  option domain-name "{{ network.domain_name }}";
+  {% endif %}
+  {% if network.domain_name_servers is defined %}
+  option domain-name-servers {{ network.domain_name_servers }};
+  {% endif %}
+  {% if network.options is defined %}
+  {% for option in network.options %}
+  {{ option }};
+  {% endfor %}
+  {% endif %}
+  {% if network.pools is defined %}
+  {% for pool in network.pools %}
+
+  {% if pool.name is defined %}
+  # {{ pool.name }}
+  {% endif %}
+  pool {
+    {% if wtd_srv_dhcp_conf_failover.enabled | bool %}
+    failover peer "{{ pool.failover_peer | default('dhcp-cluster') }}";
+    {% endif %}
+    range {{ pool.range }};
+    {% if pool.max_lease_time is defined %}
+    max-lease-time {{ pool.max_lease_time }};
+    {% endif %}
+    {% if pool.unknown_clients is defined %}
+    {{ pool.unknown_clients }} unknown-clients;
+    {% endif %}
+
+    # Options
+    {% if pool.domain_name is defined %}
+    option domain-name "{{ pool.domain_name }}";
+    {% endif %}
+    {% if pool.domain_name_servers is defined %}
+    option domain-name-servers {{ pool.domain_name_servers }};
+    {% endif %}
+    {% if pool.options is defined %}
+    {% for option in pool.options %}
+    {{ option }};
+    {% endfor %}
+    {% endif %}
+  }
+  {% endfor %}
+  {% endif %}
+}
+
+{% endfor %}
+{% endif %}

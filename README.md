@@ -36,20 +36,25 @@ This Role installs and configures a DHCP Server.
 - manage firewall
 - configure global configurations
 - configure networks
-- configure dhcp pools
-- configure omapi
+- configure dhcp ranges and pools
 - configure dhcp failover
+- configure omapi
+- configure keys
+- configure ddns
+
+Enabling OMAPI will allow to use the
+[Ansible omapi Module](https://docs.ansible.com/ansible/latest/modules/omapi_host_module.html)
+to add or remove machines/entries to dhcp, without restarting it or touching a
+configuration.
 
 ## Requirements
 
 Used Modules:
 
--   [Ansible package Module](https://docs.ansible.com/ansible/latest/modules/package_module.html)
--   [Ansible service Module](https://docs.ansible.com/ansible/latest/modules/service_module.html)
--   [Ansible package_facts Module](https://docs.ansible.com/ansible/latest/modules/package_facts_module.html)
--   [Ansible firewalld Module](https://docs.ansible.com/ansible/latest/modules/firewalld_module.html)
--   [Ansible template Module](https://docs.ansible.com/ansible/latest/modules/template_module.html)
--   [Ansible file Module](https://docs.ansible.com/ansible/latest/modules/file_module.html)
+-   [Ansible Package Module](https://docs.ansible.com/ansible/latest/modules/package_module.html)
+-   [Ansible Service Module](https://docs.ansible.com/ansible/latest/modules/service_module.html)
+-   [Ansible Template Module](https://docs.ansible.com/ansible/latest/modules/template_module.html)
+-   [Ansible Firewalld Module](https://docs.ansible.com/ansible/latest/modules/firewalld_module.html)
 
 ## Installation
 
@@ -96,7 +101,7 @@ wtd_srv_dhcp_conf_global: []
 # log_facility: ""
 # options: []
 
-# Configure networks (/etc/dhcp/dhcpd.conf)
+# Configure networks (/etc/dhcp/dhcpd-networks.conf)
 wtd_srv_dhcp_conf_networks: []
 # - name: ""
 #   subnet: ""
@@ -118,14 +123,37 @@ wtd_srv_dhcp_conf_networks: []
 #     unknown_clients: ""
 #     options: []
 
-# Configure Groups
+# Configure Groups (/etc/dhcp/dhcpd-groups.conf)
 wtd_srv_dhcp_conf_groups: []
-#   - name: ""
-#     use_host_decl_names: "on"
-#     hosts:
+# - name: ""
+#   use_host_decl_names: "on"
+#   hosts:
 #     - name: ""
 #       hardware_ethernet: ""
 #       fixed_address: ""
+
+# Configure keys (/etc/dhcp/dhcpd-keys.conf)
+# Keys are needed for ddns and omapi
+# Generate ddns key: $ dnssec-keygen -a HMAC-MD5 -b 128 -n USER <key_name>
+# Generate omapi key: $ dnssec-keygen -a HMAC-MD5 -b 128 -n HOST <key_name>
+wtd_srv_dhcp_conf_keys: []
+# - name: "<key_name>"
+#   algorithm: "hmac-md5"
+#   secret: "<key_secret>"
+
+# Configure ddns (/etc/dhcp/dhcpd-ddns.conf)
+# You have to configure your DNS Server appropriately.
+wtd_srv_dhcp_conf_ddns:
+  enabled: false
+# ddns_update_style: "interim"
+# ddns_updates: "on"
+# ddns_ttl: 7200
+# ignore: "client-updates"
+# update_static_leases: "on"
+# zones:
+#   - name: "<zone_name>"
+#     primary: "<primary dns server>"
+#     key: "<key_name from wtd_srv_dhcp_conf_keys>"
 
 # Configure failover (/etc/dhcp/dhcpd-failover.conf)
 wtd_srv_dhcp_conf_failover:
@@ -137,20 +165,16 @@ wtd_srv_dhcp_conf_failover:
 # peer_address: ""
 # peer_port: 647
 # max_response_delay: 60
-# max_unacked_updates: "10"
+# max_unacked_updates: 10
 # load_balance_max_seconds: 3
 # mclt: 1800
 # split: 255
 
 # Configure the omapi (/etc/dhcp/dhcpd-omapi.conf)
-# You have to generate the secret via:
-# $ dnssec-keygen -a HMAC-MD5 -b 128 -n USER DHCP_UPDATER
 wtd_srv_dhcp_conf_omapi:
   enabled: false
 # port: 7911
-# key: "omapi_key"
-# algorithm: "hmac-md5"
-# secret: ""
+# key: "<key_name from wtd_srv_dhcp_conf_keys>"
 
 # Configure additional file includes
 wtd_srv_dhcp_conf_includes: []
@@ -199,7 +223,7 @@ A dhcp server for 192.168.0.0/24 can look like.
 
 #### Advanced
 
-Define multiple pools and networks or change some global values.
+Define multiple pools and networks and change some global values.
 
 ```
 - hosts: all
@@ -227,15 +251,51 @@ Define multiple pools and networks or change some global values.
           range: "192.168.10.10 192.168.10.20"
 ```
 
-Configure a dhcp cluster, enable the omapi and configure
-a pool with the range 192.168.0.100 - 192.168.0.200.
+#### PXE Server Setup
 
-Be aware, that you have to generate the omapi secret on your own and copy
-the key.
+Configure a dhcp server and tftp server as pxe boot service. You need the
+[while_true_do.srv_tftp](https://github.com/while-true-do/ansible-role-srv_tftp)
+Role.
+
+```
+- hosts: install
+  roles:
+    - role: while_true_do.srv_tftp
+      wtd_srv_tftp_boot_conf:
+      timeout: "100"
+      labels:
+        - label: "CentOS 7.6"
+          default: true
+          kernel: "centos76/vmlinuz"
+          append: "initrd=centos76/initrd.img"
+    - role: while_true_do.srv_dhcp
+      wtd_srv_dhcp_conf_global:
+        allow_booting: false
+        allow_bootp: false
+        next_server: "<ip of install host>"
+        filename: "pxelinux.cfg/default"
+      wtd_srv_dhcp_conf_networks:
+        - name: "my network"
+          subnet: "192.168.0.0"
+          netmask: "255.255.255.0"
+          domain_name_servers: "192.168.0.1"
+          routers: "192.168.0.1"
+          range: "192.168.0.10 192.168.0.20"
+```
+
+#### Cluster Setup
+
+Configure a dhcp cluster, enable omapi, ddns and configure a pool with the
+range 192.168.0.100 - 192.168.0.200.
+
+Be aware, that you have to generate the omapi and ddns key on your own and
+copy the secret.
 
 ```
 # Generate omapi key
-dnssec-keygen -a HMAC-MD5 -b 128 -C -n USER DHCP_UPDATER
+dnssec-keygen -a HMAC-MD5 -b 128 -n HOST <key_name>
+# Generate ddns key
+dnssec-keygen -a HMAC-MD5 -b 128 -n USER <key_name>
 cat *.key
 # copy / paste the key
 ```
@@ -252,17 +312,32 @@ cat *.key
           netmask: "255.255.255.0"
           domain_name_servers: "192.168.0.1"
           routers: "192.168.0.1"
-          range: "192.168.0.100 192.168.0.200"
+          pools:
+            - name: "my network 1 pool"
+              failover_peer: "dhcp-cluster"
+              range: "192.168.0.100 192.168.0.200"
+      wtd_srv_dhcp_conf_keys:
+        - name: "omapi_key"
+          secret: "<generated omapi secret here>"
+        - name: "ddns_key"
+          secret: "<generated ddns secret here>"
+      wtd_srv_dhcp_conf_ddns:
+        enabled: true
+        zones:
+          - name: "example.org"
+            primary: "<ip of dns server>"
+            key: "ddns_key"
       wtd_srv_dhcp_conf_omapi:
         enabled: true
-        secret: "my_secret!!!"
+        key: "omapi_key"
       wtd_srv_dhcp_conf_failover:
         enabled: true
+        name: "dhcp-cluster"
         primary: true
         address: "192.168.0.11"
         peer_address: "192.168.0.12"
 
-# dhcp_secundary has ip address 192.168.0.12
+# dhcp_secondary has ip address 192.168.0.12
 - hosts: dhcp_secundary
   roles:
     - role: while_true_do.srv_dhcp
@@ -272,12 +347,27 @@ cat *.key
           netmask: "255.255.255.0"
           domain_name_servers: "192.168.0.1"
           routers: "192.168.0.1"
-          range: "192.168.0.100 192.168.0.200"
+          pools:
+            - name: "my network 1 pool"
+              failover_peer: "dhcp-cluster"
+              range: "192.168.0.100 192.168.0.200"
+      wtd_srv_dhcp_conf_keys:
+        - name: "omapi_key"
+          secret: "<generated omapi secret here>"
+        - name: "ddns_key"
+          secret: "<generated ddns secret here>"
+      wtd_srv_dhcp_conf_ddns:
+        enabled: true
+        zones:
+          - name: "example.org"
+            primary: "<ip of dns server>"
+            key: "ddns_key"
       wtd_srv_dhcp_conf_omapi:
         enabled: true
-        secret: "my_secret!!!"
+        key: "omapi_key"
       wtd_srv_dhcp_conf_failover:
         enabled: true
+        name: "dhcp-cluster"
         primary: false
         address: "192.168.0.12"
         peer_address: "192.168.0.11"

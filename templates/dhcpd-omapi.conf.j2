@@ -1,9 +1,6 @@
 {{ ansible_managed | comment }}
 
+# OMAPI
+
 omapi-port {{ wtd_srv_dhcp_conf_omapi.port | default('7911') }};
 omapi-key {{ wtd_srv_dhcp_conf_omapi.key | default('omapi_key') }};
-
-key {{ wtd_srv_dhcp_conf_omapi.key | default('omapi_key') }} {
-  algorithm {{ wtd_srv_dhcp_conf_omapi.algorithm | default('hmac-md5') }};
-  secret "{{ wtd_srv_dhcp_conf_omapi.secret | mandatory }}";
-}

@@ -1,5 +1,7 @@
 {{ ansible_managed | comment }}
 
+# Failover
+
 failover peer {{ wtd_srv_dhcp_conf_failover.name | default('dhcp-cluster') }} {
   {% if wtd_srv_dhcp_conf_failover.primary | bool %}
   primary;
